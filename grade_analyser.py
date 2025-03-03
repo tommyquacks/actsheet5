@@ -1,55 +1,44 @@
+import csv
 
+def classify_grade(average):
+    """Classifies a student's average grade according to the given boundaries."""
+    if average >= 70:
+        return "1"
+    elif average >= 60:
+        return "2:1"
+    elif average >= 50:
+        return "2:2"
+    elif average >= 40:
+        return "3"
+    else:
+        return "F"
 
-def read_grades(filename):
-    
-    grades = {}
-    with open(filename, 'r') as file:
-        for line in file:
-            name, grade = line.strip().split(',')
-            grades[name] = int(grade)
-    return grades
+def process_student_data(filename):
+    """Reads student data, calculates their average grades and classifications, then writes output to a new CSV file."""
+    output_filename = filename.replace(".csv", "_out.csv")
 
-def calculate_statistics(grades):
-    
-    total_students = len(grades)
-    total_sum = sum(grades.values())
-    average = total_sum / total_students
+    with open(filename, newline='') as infile, open(output_filename, "w", newline='') as outfile:
+        reader = csv.reader(infile)
+        writer = csv.writer(outfile)
 
-    highest_grade = max(grades.values())
-    lowest_grade = min(grades.values())
+        # Read header row and ignore
+        header = next(reader)
 
-    passing = sum(1 for g in grades.values() if g >= 50)
-    failing = total_students - passing
+        # Write the new header for the output file
+        writer.writerow(["student_id", "average_grade", "classification"])
 
-    grade_distribution = {
-        'A': sum(1 for g in grades.values() if g >= 80),
-        'B': sum(1 for g in grades.values() if 70 <= g < 80),
-        'C': sum(1 for g in grades.values() if 60 <= g < 70),
-        'D': sum(1 for g in grades.values() if 50 <= g < 60),
-        'F': sum(1 for g in grades.values() if g < 50),
-    }
+        for row in reader:
+            student_id = row[0]  # First column is always student_id
+            grades = [int(grade) for grade in row[1:] if grade]  # Convert valid grades to integers
 
-    return average, highest_grade, lowest_grade, passing, failing, grade_distribution
+            if grades:
+                average_grade = sum(grades) / len(grades)
+                classification = classify_grade(average_grade)
+                writer.writerow([student_id, f"{average_grade:.2f}", classification])
 
-def write_results(filename, statistics):
-    
-    average, highest, lowest, passing, failing, distribution = statistics
-    with open(filename, 'w') as file:
-        file.write(f"Average Grade: {average:.2f}\n")
-        file.write(f"Highest Grade: {highest}\n")
-        file.write(f"Lowest Grade: {lowest}\n")
-        file.write(f"Passing Students: {passing}\n")
-        file.write(f"Failing Students: {failing}\n")
-        file.write("Grade Distribution:\n")
-        for grade, count in distribution.items():
-            file.write(f"  {grade}: {count}\n")
+    print(f"Processing complete! Output saved to {output_filename}")
 
+# Prompt user for the filename
+filename = input("Enter the student data filename (e.g., student_data_10.csv): ").strip()
+process_student_data(filename)
 
-input_file = "grades.txt"
-output_file = "grade_summary.txt"
-
-grades_data = read_grades(input_file)
-statistics = calculate_statistics(grades_data)
-write_results(output_file, statistics)
-
-print("Grade analysis complete. Results saved to", output_file)
