@@ -23,21 +23,36 @@ def process_student_data(input_file):
         # Write the output header
         writer.writerow(["student_id", "average_grade", "classification"])
         
-        # Skip the header row of the input file
-        next(reader)
-        
-        # Process each data row
-        for row in reader:
-            student_id = row[0]
-            # Extract marks, ignoring empty strings
-            marks = [int(mark) for mark in row[1:] if mark.strip() != '']
-            if marks:
-                # Calculate average
-                average = sum(marks) / len(marks)
-                # Determine classification
-                classification = calculate_classification(average)
-                # Write to output file with average formatted to 2 decimal places
-                writer.writerow([student_id, f"{average:.2f}", classification])
+        try:
+            # Read the first row
+            first_row = next(reader)
+            
+            # Check if the first row is a header by attempting to convert the second element to int
+            try:
+                int(first_row[1])
+                # If successful, it's a data row; process it
+                student_id = first_row[0]
+                marks = [int(mark) for mark in first_row[1:] if mark.strip() != '']
+                if marks:
+                    average = sum(marks) / len(marks)
+                    classification = calculate_classification(average)
+                    writer.writerow([student_id, f"{average:.2f}", classification])
+            except ValueError:
+                # If it fails, it's a header; skip it and proceed to next rows
+                pass
+            
+            # Process the remaining rows
+            for row in reader:
+                student_id = row[0]
+                marks = [int(mark) for mark in row[1:] if mark.strip() != '']
+                if marks:
+                    average = sum(marks) / len(marks)
+                    classification = calculate_classification(average)
+                    writer.writerow([student_id, f"{average:.2f}", classification])
+                    
+        except StopIteration:
+            # Handle empty file case
+            return
 
 def main():
     """Main function to ask for the filename and process the data."""
