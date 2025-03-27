@@ -1,64 +1,36 @@
 import csv
 
-def calculate_classification(average):
-    """Determine the classification based on the average grade."""
-    if average >= 70:
-        return "1"
-    elif average >= 60:
-        return "2:1"
-    elif average >= 50:
-        return "2:2"
-    elif average >= 40:
-        return "3"
+def classify_grade(grade):
+    grade = float(grade)
+    if grade >= 70:
+        return '1st'
+    elif grade >= 60:
+        return '2:1'
+    elif grade >= 50:
+        return '2:2'
+    elif grade >= 40:
+        return '3rd'
     else:
-        return "F"
+        return 'F'
 
-def process_student_data(input_file):
-    """Process the student data file and generate the output file."""
-    output_file = input_file + "_out.csv"
-    with open(input_file, 'r') as infile, open(output_file, 'w', newline='') as outfile:
-        reader = csv.reader(infile)
-        writer = csv.writer(outfile)
-        
-        # Write the output header
-        writer.writerow(["student_id", "average_grade", "classification"])
-        
-        try:
-            # Read the first row
-            first_row = next(reader)
-            
-            # Check if the first row is a header by attempting to convert the second element to int
-            try:
-                int(first_row[1])
-                # If successful, it's a data row; process it
-                student_id = first_row[0]
-                marks = [int(mark) for mark in first_row[1:] if mark.strip() != '']
-                if marks:
-                    average = sum(marks) / len(marks)
-                    classification = calculate_classification(average)
-                    writer.writerow([student_id, f"{average:.2f}", classification])
-            except ValueError:
-                # If it fails, it's a header; skip it and proceed to next rows
-                pass
-            
-            # Process the remaining rows
-            for row in reader:
-                student_id = row[0]
-                marks = [int(mark) for mark in row[1:] if mark.strip() != '']
-                if marks:
-                    average = sum(marks) / len(marks)
-                    classification = calculate_classification(average)
-                    writer.writerow([student_id, f"{average:.2f}", classification])
-                    
-        except StopIteration:
-            # Handle empty file case
-            return
+# Read input CSV (assumed to include a header)
+with open('input.csv', 'r') as infile:
+    reader = csv.reader(infile)
+    header = next(reader)  # Skip the header row
 
-def main():
-    """Main function to ask for the filename and process the data."""
-    input_file = input("Enter the filename of the student file: ")
-    process_student_data(input_file)
-    print(f"Output written to {input_file}_out.csv")
+    results = []  # This will store the output rows
 
-if __name__ == "__main__":
-    main()
+    for row in reader:
+        student_id = row[0]
+        grades = list(map(float, row[1:]))
+        avg = round(sum(grades) / len(grades), 2)
+        classification = classify_grade(avg)
+        results.append([student_id, f"{avg:.2f}", classification])
+
+# Write output CSV
+with open('output.csv', 'w', newline='') as outfile:
+    writer = csv.writer(outfile)
+    # Write header once
+    writer.writerow(['student_id', 'average_grade', 'classification'])
+    # Write student data
+    writer.writerows(results)
