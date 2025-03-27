@@ -1,5 +1,4 @@
 import csv
-import os
 
 def calculate_classification(average):
     """Determine the classification based on the average grade."""
@@ -20,12 +19,17 @@ def process_student_data(input_file):
     with open(input_file, 'r') as infile, open(output_file, 'w', newline='') as outfile:
         reader = csv.reader(infile)
         writer = csv.writer(outfile)
-        # Write the header to the output file
+        
+        # Write the output header
         writer.writerow(["student_id", "average_grade", "classification"])
         
+        # Skip the header row of the input file
+        next(reader)
+        
+        # Process each data row
         for row in reader:
             student_id = row[0]
-            # Extract module marks, ignoring empty strings
+            # Extract marks, ignoring empty strings
             marks = [int(mark) for mark in row[1:] if mark.strip() != '']
             if marks:
                 # Calculate average
@@ -38,9 +42,6 @@ def process_student_data(input_file):
 def main():
     """Main function to ask for the filename and process the data."""
     input_file = input("Enter the filename of the student file: ")
-    if not os.path.exists(input_file):
-        print(f"Error: File '{input_file}' not found.")
-        return
     process_student_data(input_file)
     print(f"Output written to {input_file}_out.csv")
 
